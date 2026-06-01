@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SparkNC: Career Rush 🎮</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --navy: #0A1628;
+  --mid: #112240;
+  --yellow: #F5C518;
+  --green: #00C9A7;
+  --red: #E84855;
+  --purple: #7B5EA7;
+  --white: #FFFFFF;
+  --gray: #94A3B8;
+}
+body {
+  background: var(--navy);
+  font-family: 'Outfit', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+/* ── SCREENS ── */
+.screen { display:none; width:100vw; height:100vh; position:absolute; top:0; left:0; }
+.screen.active { display:flex; flex-direction:column; align-items:center; justify-content:center; }
+
+/* ── TITLE SCREEN ── */
+#titleScreen {
+  background: radial-gradient(ellipse at 50% 30%, #1a3a5c 0%, #0A1628 70%);
+  position:relative; overflow:hidden;
+}
+#titleScreen::before {
+  content:''; position:absolute; inset:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(245,197,24,0.04) 40px),
+              repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(245,197,24,0.04) 40px);
+}
+.title-glow {
+  position:absolute; top:10%; left:50%; transform:translateX(-50%);
+  width:400px; height:400px; border-radius:50%;
+  background: radial-gradient(circle, rgba(245,197,24,0.12) 0%, transparent 70%);
+  pointer-events:none;
+}
+.title-content { position:relative; z-index:2; text-align:center; }
+.title-spark {
+  font-size:11px; font-family:'Press Start 2P', monospace; color:var(--yellow);
+  letter-spacing:4px; margin-bottom:16px; opacity:0.8;
+}
+.title-main {
+  font-family:'Press Start 2P', monospace; font-size:clamp(20px,4vw,36px);
+  color:var(--white); line-height:1.3; margin-bottom:8px;
+  text-shadow: 0 0 40px rgba(245,197,24,0.5), 3px 3px 0 rgba(0,0,0,0.5);
+}
+.title-main span { color:var(--yellow); }
+.title-sub { font-size:14px; color:var(--gray); margin-bottom:36px; line-height:1.6; max-width:400px; }
+.career-select-grid {
+  display:grid; grid-template-columns:repeat(2,1fr); gap:12px;
+  margin-bottom:28px; max-width:500px; width:90%;
+}
+.career-btn {
+  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
+  border-radius:14px; padding:16px 12px; cursor:pointer; transition:all 0.2s;
+  text-align:center; font-family:'Outfit',sans-serif;
+}
+.career-btn:hover, .career-btn.selected {
+  border-color:var(--yellow); background:rgba(245,197,24,0.1);
+  transform:translateY(-2px); box-shadow:0 6px 20px rgba(245,197,24,0.2);
+}
+.career-btn .cb-emoji { font-size:28px; margin-bottom:6px; }
+.career-btn .cb-name { font-size:12px; font-weight:700; color:var(--white); margin-bottom:2px; }
+.career-btn .cb-field { font-size:10px; color:var(--gray); }
+.career-btn .cb-color { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; }
+
+.controls-hint { font-size:11px; color:var(--gray); margin-bottom:20px; font-family:'Press Start 2P',monospace; line-height:1.8; }
+.start-btn {
+  background:var(--yellow); color:var(--navy);
+  border:none; border-radius:12px; padding:16px 44px;
+  font-family:'Press Start 2P',monospace; font-size:14px; cursor:pointer;
+  transition:all 0.2s; letter-spacing:1px;
+  box-shadow: 0 4px 0 #b8960e, 0 8px 20px rgba(245,197,24,0.4);
+}
+.start-btn:hover { transform:translateY(-2px); box-shadow:0 6px 0 #b8960e, 0 10px 28px rgba(245,197,24,0.5); }
+.start-btn:active { transform:translateY(2px); box-shadow:0 2px 0 #b8960e; }
+.start-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+/* ── GAME SCREEN ── */
+#gameScreen { background:#0A1628; flex-direction:column; }
+#gameCanvas {
+  display:block;
+  image-rendering:pixelated;
+  touch-action:none;
+}
+
+/* HUD */
+.game-hud {
+  width:100%; max-width:900px; padding:10px 16px;
+  display:flex; justify-content:space-between; align-items:center;
+  background:rgba(0,0,0,0.4); border-bottom:2px solid rgba(245,197,24,0.2);
+}
+.hud-left { display:flex; align-items:center; gap:16px; }
+.hud-char { font-size:20px; }
+.hud-name { font-family:'Press Start 2P',monospace; font-size:9px; color:var(--yellow); }
+.hud-center { text-align:center; }
+.hud-score { font-family:'Press Start 2P',monospace; font-size:14px; color:var(--white); }
+.hud-score span { color:var(--yellow); }
+.hud-right { display:flex; gap:14px; align-items:center; }
+.hud-stat { display:flex; align-items:center; gap:5px; font-family:'Press Start 2P',monospace; font-size:9px; color:var(--white); }
+.hud-lives { display:flex; gap:3px; }
+.hud-life { font-size:14px; }
+.hud-powerup-active { font-family:'Press Start 2P',monospace; font-size:8px; color:var(--yellow); animation:blink 0.6s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── GAME OVER SCREEN ── */
+#gameOverScreen {
+  background:rgba(10,22,40,0.97);
+  position:relative; overflow:hidden;
+}
+.go-scanlines {
+  position:absolute; inset:0; pointer-events:none;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 3px);
+}
+.go-content { position:relative; z-index:2; text-align:center; max-width:540px; width:90%; }
+.go-title { font-family:'Press Start 2P',monospace; font-size:clamp(16px,3vw,28px); color:var(--red); margin-bottom:6px; text-shadow:0 0 20px rgba(232,72,85,0.6); }
+.go-sub { font-family:'Press Start 2P',monospace; font-size:10px; color:var(--gray); margin-bottom:28px; }
+.go-stats {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px;
+}
+.go-stat { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:14px 8px; }
+.go-stat-n { font-family:'Press Start 2P',monospace; font-size:16px; color:var(--yellow); margin-bottom:4px; }
+.go-stat-l { font-size:11px; color:var(--gray); }
+.go-career-card {
+  background:rgba(245,197,24,0.07); border:2px solid rgba(245,197,24,0.25);
+  border-radius:14px; padding:18px; margin-bottom:20px; text-align:left;
+}
+.go-career-name { font-size:15px; font-weight:800; color:var(--white); margin-bottom:4px; }
+.go-career-salary { font-family:'Press Start 2P',monospace; font-size:9px; color:var(--yellow); margin-bottom:8px; }
+.go-career-desc { font-size:13px; color:var(--gray); line-height:1.6; margin-bottom:12px; }
+.go-career-btns { display:flex; gap:8px; flex-wrap:wrap; }
+.go-btn-primary { padding:9px 18px; background:var(--yellow); color:var(--navy); border:none; border-radius:8px; font-family:'Outfit',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.go-btn-primary:hover { background:#e6b800; }
+.go-btn-outline { padding:9px 18px; background:transparent; color:var(--white); border:2px solid rgba(255,255,255,0.2); border-radius:8px; font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.go-btn-outline:hover { border-color:var(--yellow); color:var(--yellow); }
+.go-actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.go-play-again { padding:13px 30px; background:var(--green); color:var(--navy); border:none; border-radius:10px; font-family:'Press Start 2P',monospace; font-size:11px; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 0 #008a72; }
+.go-play-again:hover { transform:translateY(-2px); box-shadow:0 6px 0 #008a72; }
+.go-menu { padding:13px 30px; background:transparent; color:var(--gray); border:2px solid rgba(255,255,255,0.15); border-radius:10px; font-family:'Press Start 2P',monospace; font-size:10px; cursor:pointer; transition:all 0.2s; }
+.go-menu:hover { border-color:var(--gray); color:var(--white); }
+
+/* HIGH SCORE */
+.new-best { font-family:'Press Start 2P',monospace; font-size:10px; color:var(--yellow); animation:pulse-bright 0.8s infinite; margin-bottom:10px; }
+@keyframes pulse-bright { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.05)} }
+
+/* MOBILE TOUCH */
+.touch-controls {
+  display:none; position:fixed; bottom:20px; left:0; right:0;
+  justify-content:center; gap:20px; z-index:100;
+}
+@media (max-width:700px) or (pointer:coarse) {
+  .touch-controls { display:flex; }
+  .career-select-grid { grid-template-columns:1fr 1fr; }
+}
+.touch-btn {
+  width:70px; height:70px; border-radius:50%;
+  background:rgba(255,255,255,0.1); border:3px solid rgba(255,255,255,0.2);
+  font-size:24px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all 0.1s; -webkit-tap-highlight-color:transparent;
+}
+.touch-btn:active { background:rgba(245,197,24,0.3); border-color:var(--yellow); transform:scale(0.92); }
+</style>
+</head>
+<body>
+
+<!-- TITLE SCREEN -->
+<div class="screen active" id="titleScreen">
+  <div class="title-glow"></div>
+  <div class="title-content">
+    <div class="title-spark">⚡ SPARKNC PRESENTS</div>
+    <div class="title-main">CAREER<br><span>RUSH</span></div>
+    <p class="title-sub">Pick your career, dodge the chaos, collect power-ups. How far can you go?</p>
+
+    <div class="career-select-grid">
+      <div class="career-btn selected" onclick="selectCareer(0)" id="cb0">
+        <div class="cb-emoji">🛡️</div>
+        <div class="cb-name">Security Sam</div>
+        <div class="cb-field" style="color:#E84855">Cybersecurity</div>
+      </div>
+      <div class="career-btn" onclick="selectCareer(1)" id="cb1">
+        <div class="cb-emoji">💻</div>
+        <div class="cb-name">Dev Dana</div>
+        <div class="cb-field" style="color:#16A34A">Software Dev</div>
+      </div>
+      <div class="career-btn" onclick="selectCareer(2)" id="cb2">
+        <div class="cb-emoji">📊</div>
+        <div class="cb-name">Data Darius</div>
+        <div class="cb-field" style="color:#EA580C">Data Analytics</div>
+      </div>
+      <div class="career-btn" onclick="selectCareer(3)" id="cb3">
+        <div class="cb-emoji">🖥️</div>
+        <div class="cb-name">IT Ivan</div>
+        <div class="cb-field" style="color:#4F46E5">IT Support</div>
+      </div>
+    </div>
+
+    <div class="controls-hint">
+      SPACE / ↑ / W = JUMP &nbsp;|&nbsp; TAP SCREEN = JUMP<br>
+      DOUBLE JUMP when you collect ⚡
+    </div>
+    <button class="start-btn" onclick="startGame()">PLAY NOW →</button>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div class="screen" id="gameScreen">
+  <div class="game-hud">
+    <div class="hud-left">
+      <div class="hud-char" id="hudChar">🛡️</div>
+      <div>
+        <div class="hud-name" id="hudName">SECURITY SAM</div>
+        <div class="hud-powerup-active" id="hudPowerup" style="display:none"></div>
+      </div>
+    </div>
+    <div class="hud-center">
+      <div class="hud-score">SCORE: <span id="scoreDisplay">0</span></div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-stat">BEST: <span id="bestDisplay">0</span></div>
+      <div class="hud-lives" id="livesDisplay"></div>
+    </div>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div class="touch-controls">
+    <div class="touch-btn" id="touchJump">↑</div>
+  </div>
+</div>
+
+<!-- GAME OVER SCREEN -->
+<div class="screen" id="gameOverScreen">
+  <div class="go-scanlines"></div>
+  <div class="go-content">
+    <div class="go-title">GAME OVER</div>
+    <div class="go-sub" id="goSub">NICE TRY, SPARK SCHOLAR</div>
+    <div id="newBest" class="new-best" style="display:none">🏆 NEW HIGH SCORE!</div>
+    <div class="go-stats">
+      <div class="go-stat"><div class="go-stat-n" id="goScore">0</div><div class="go-stat-l">Score</div></div>
+      <div class="go-stat"><div class="go-stat-n" id="goDist">0m</div><div class="go-stat-l">Distance</div></div>
+      <div class="go-stat"><div class="go-stat-n" id="goCollected">0</div><div class="go-stat-l">Power-ups</div></div>
+    </div>
+    <div class="go-career-card" id="goCareerCard"></div>
+    <div class="go-actions">
+      <button class="go-play-again" onclick="restartGame()">▶ PLAY AGAIN</button>
+      <button class="go-menu" onclick="goToMenu()">MENU</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CAREER DATA ────────────────────────────────────────────────────────────
+const careers = [
+  {
+    id:0, name:"Security Sam", emoji:"🛡️", field:"Cybersecurity",
+    color:"#E84855", skinColor:"#F5A623",
+    obstacles:["🦠","💀","🔓","👾","📧"],
+    obstacleNames:["Virus","Malware","Breach","Hacker","Phishing Email"],
+    powerupTheme:"🔐",
+    salary:"$65,000–$130,000",
+    desc:"Cybersecurity Analysts protect NC organizations from hackers, malware, and data breaches. Strong demand statewide — especially at Cisco RTP, IBM, and NC State Government.",
+    roadmapKey:"Cybersecurity Analyst"
+  },
+  {
+    id:1, name:"Dev Dana", emoji:"💻", field:"Software Dev",
+    color:"#16A34A", skinColor:"#4F46E5",
+    obstacles:["🐛","💥","⚠️","🔀","📌"],
+    obstacleNames:["Bug","Crash","Warning","Merge Conflict","Blocked PR"],
+    powerupTheme:"🚀",
+    salary:"$70,000–$110,000",
+    desc:"Software Developers build the apps and systems NC companies run on. Red Hat, Bandwidth, and Epic Games are all hiring in the Triangle — with strong entry-level paths for bootcamp grads.",
+    roadmapKey:"Software Developer"
+  },
+  {
+    id:2, name:"Data Darius", emoji:"📊", field:"Data Analytics",
+    color:"#EA580C", skinColor:"#0369A1",
+    obstacles:["💾","🗑️","❓","📉","🔢"],
+    obstacleNames:["Corrupted File","Bad Data","Missing Value","Bad Query","Outlier"],
+    powerupTheme:"📈",
+    salary:"$48,000–$145,000",
+    desc:"Data Analysts and Scientists are in huge demand at SAS Institute (Cary NC), Duke Energy, and Lenovo. NC is home to one of the top analytics ecosystems in the Southeast.",
+    roadmapKey:"Data Analyst"
+  },
+  {
+    id:3, name:"IT Ivan", emoji:"🖥️", field:"IT Support",
+    color:"#4F46E5", skinColor:"#E84855",
+    obstacles:["😤","🖨️","📴","🔌","🔋"],
+    obstacleNames:["Angry User","Jammed Printer","Offline Server","Unplugged Cable","Dead Battery"],
+    powerupTheme:"🔧",
+    salary:"$35,000–$85,000",
+    desc:"IT Support pros keep NC's schools, hospitals, and businesses running. Robeson Community College, NC State Government, and UNC Health all have strong IT support career pipelines.",
+    roadmapKey:"Help Desk Technician"
+  }
+];
+
+// ─── POWERUP TYPES ──────────────────────────────────────────────────────────
+const POWERUPS = [
+  { emoji:"📜", name:"CompTIA Cert", effect:"2X_SCORE", duration:5000, color:"#F5C518" },
+  { emoji:"☕", name:"Coffee Boost", effect:"SLOW_WORLD", duration:4000, color:"#8B4513" },
+  { emoji:"🔑", name:"Security Badge", effect:"SHIELD", duration:4000, color:"#00C9A7" },
+  { emoji:"⚡", name:"SparkNC Bolt", effect:"DOUBLE_JUMP", duration:6000, color:"#F5C518" },
+  { emoji:"💰", name:"Salary Boost", effect:"BONUS_POINTS", duration:0, color:"#16A34A" }
+];
+
+// ─── GAME STATE ─────────────────────────────────────────────────────────────
+let canvas, ctx;
+let selectedCareer = 0;
+let gameRunning = false;
+let animFrame;
+
+let player, obstacles, powerups, particles, floatingTexts;
+let score, distance, collected, lives;
+let gameSpeed, spawnTimer, spawnInterval;
+let bgLayers;
+let activePowerup, powerupTimer;
+let doubleJumpAvailable, shielded, slowWorld;
+let highScore = parseInt(localStorage.getItem('careerRushHS') || '0');
+
+const GROUND_Y_RATIO = 0.72;
+const PLAYER_W = 44;
+const PLAYER_H = 54;
+const GRAVITY = 0.55;
+const JUMP_FORCE = -13.5;
+const BASE_SPEED = 5;
+
+// ─── CAREER SELECT ──────────────────────────────────────────────────────────
+function selectCareer(idx) {
+  selectedCareer = idx;
+  document.querySelectorAll('.career-btn').forEach((b,i) => b.classList.toggle('selected', i===idx));
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+function initCanvas() {
+  canvas = document.getElementById('gameCanvas');
+  ctx = canvas.getContext('2d');
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+}
+
+function resizeCanvas() {
+  const hud = document.querySelector('.game-hud');
+  const hudH = hud ? hud.offsetHeight : 60;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight - hudH;
+}
+
+// ─── START GAME ─────────────────────────────────────────────────────────────
+function startGame() {
+  showScreen('gameScreen');
+  const c = careers[selectedCareer];
+  document.getElementById('hudChar').textContent = c.emoji;
+  document.getElementById('hudName').textContent = c.name.toUpperCase();
+  document.getElementById('bestDisplay').textContent = highScore;
+  resizeCanvas();
+  resetGame();
+  bindControls();
+  gameLoop();
+}
+
+function resetGame() {
+  const groundY = canvas.height * GROUND_Y_RATIO;
+  player = {
+    x: canvas.width * 0.15,
+    y: groundY - PLAYER_H,
+    vy: 0,
+    onGround: true,
+    jumping: false,
+    jumpCount: 0,
+    frame: 0,
+    frameTimer: 0,
+    invincible: false,
+    invincibleTimer: 0,
+    squish: 1,
+    squishTimer: 0
+  };
+  obstacles = [];
+  powerups = [];
+  particles = [];
+  floatingTexts = [];
+  score = 0;
+  distance = 0;
+  collected = 0;
+  lives = 3;
+  gameSpeed = BASE_SPEED;
+  spawnTimer = 0;
+  spawnInterval = 90;
+  activePowerup = null;
+  powerupTimer = 0;
+  doubleJumpAvailable = false;
+  shielded = false;
+  slowWorld = false;
+  updateHUD();
+  initBackground();
+}
+
+function initBackground() {
+  bgLayers = [
+    { x:0, speed:0.3, items: generateBgItems(0.3) },
+    { x:0, speed:0.6, items: generateBgItems(0.6) },
+    { x:0, speed:1.0, items: generateBgItems(1.0) }
+  ];
+}
+
+function generateBgItems(speed) {
+  const items = [];
+  const count = Math.floor(8 + speed * 6);
+  for(let i = 0; i < count; i++) {
+    items.push({
+      x: Math.random() * canvas.width * 2,
+      y: Math.random() * canvas.height * 0.65,
+      type: Math.floor(Math.random() * 4),
+      size: 12 + Math.random() * 24,
+      opacity: 0.04 + speed * 0.05
+    });
+  }
+  return items;
+}
+
+// ─── CONTROLS ───────────────────────────────────────────────────────────────
+function bindControls() {
+  document.onkeydown = (e) => {
+    if(['Space','ArrowUp','KeyW'].includes(e.code)) {
+      e.preventDefault();
+      doJump();
+    }
+  };
+  canvas.onclick = doJump;
+  document.getElementById('touchJump').ontouchstart = (e) => { e.preventDefault(); doJump(); };
+}
+
+function unbindControls() {
+  document.onkeydown = null;
+  canvas.onclick = null;
+}
+
+function doJump() {
+  if (!gameRunning) return;
+  if (player.onGround) {
+    player.vy = JUMP_FORCE;
+    player.onGround = false;
+    player.jumpCount = 1;
+    player.squish = 1.3;
+    player.squishTimer = 8;
+    spawnParticles(player.x + PLAYER_W/2, player.y + PLAYER_H, '#F5C518', 6);
+  } else if (doubleJumpAvailable && player.jumpCount < 2) {
+    player.vy = JUMP_FORCE * 0.85;
+    player.jumpCount = 2;
+    doubleJumpAvailable = false;
+    spawnParticles(player.x + PLAYER_W/2, player.y + PLAYER_H/2, '#F5C518', 10);
+    addFloatingText('DOUBLE JUMP!', player.x, player.y, '#F5C518');
+  }
+}
+
+// ─── SPAWN ──────────────────────────────────────────────────────────────────
+function spawnObstacle() {
+  const groundY = canvas.height * GROUND_Y_RATIO;
+  const c = careers[selectedCareer];
+  const types = [
+    { w:36, h:42, ground:true },
+    { w:28, h:60, ground:true },
+    { w:48, h:32, ground:true },
+    { w:24, h:80, ground:true },
+  ];
+  // Occasionally spawn a flying obstacle
+  const flying = Math.random() < 0.22 && distance > 300;
+  const type = types[Math.floor(Math.random() * types.length)];
+  const emoji = c.obstacles[Math.floor(Math.random() * c.obstacles.length)];
+  const flyHeight = flying ? (Math.random() < 0.5 ? 110 : 60) : 0;
+  obstacles.push({
+    x: canvas.width + 20,
+    y: groundY - type.h - flyHeight,
+    w: type.w,
+    h: type.h,
+    emoji,
+    flying,
+    wiggle: Math.random() * Math.PI * 2
+  });
+}
+
+function spawnPowerup() {
+  if (Math.random() > 0.35) return;
+  const groundY = canvas.height * GROUND_Y_RATIO;
+  const pu = POWERUPS[Math.floor(Math.random() * POWERUPS.length)];
+  const height = 40 + Math.random() * 80;
+  powerups.push({
+    x: canvas.width + 20,
+    y: groundY - PLAYER_H - height,
+    w: 32, h: 32,
+    ...pu,
+    bob: Math.random() * Math.PI * 2,
+    collected: false
+  });
+}
+
+// ─── PARTICLES ──────────────────────────────────────────────────────────────
+function spawnParticles(x, y, color, count) {
+  for(let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 1.5 + Math.random() * 3.5;
+    particles.push({
+      x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed - 1,
+      life: 1, decay: 0.04 + Math.random()*0.03,
+      size: 3 + Math.random()*4, color
+    });
+  }
+}
+
+function addFloatingText(text, x, y, color) {
+  floatingTexts.push({ text, x, y, vy:-1.5, life:1, decay:0.02, color });
+}
+
+// ─── UPDATE ──────────────────────────────────────────────────────────────────
+function update() {
+  if (!gameRunning) return;
+  const groundY = canvas.height * GROUND_Y_RATIO;
+  const speed = slowWorld ? gameSpeed * 0.45 : gameSpeed;
+
+  // Speed ramp
+  gameSpeed = BASE_SPEED + distance * 0.008;
+  if (gameSpeed > 18) gameSpeed = 18;
+
+  // Player physics
+  player.vy += GRAVITY;
+  player.y += player.vy;
+  if (player.squishTimer > 0) { player.squishTimer--; if(!player.squishTimer) player.squish = 1; }
+
+  // Ground collision
+  if (player.y >= groundY - PLAYER_H) {
+    player.y = groundY - PLAYER_H;
+    player.vy = 0;
+    player.onGround = true;
+    player.jumpCount = 0;
+    if (doubleJumpAvailable && activePowerup?.effect === 'DOUBLE_JUMP') {
+      // keep it
+    }
+  } else {
+    player.onGround = false;
+  }
+
+  // Run animation
+  if (player.onGround) {
+    player.frameTimer++;
+    if (player.frameTimer > 8) { player.frame = (player.frame+1)%4; player.frameTimer=0; }
+  }
+
+  // Invincibility
+  if (player.invincible) {
+    player.invincibleTimer--;
+    if (player.invincibleTimer <= 0) player.invincible = false;
+  }
+
+  // Background
+  bgLayers.forEach(layer => {
+    layer.x -= speed * layer.speed;
+    layer.items.forEach(item => {
+      item.x -= speed * layer.speed;
+      if (item.x < -60) item.x = canvas.width + 60;
+    });
+  });
+
+  // Score & distance
+  distance += speed * 0.1;
+  score += slowWorld ? 1 : (activePowerup?.effect === '2X_SCORE' ? 2 : 1);
+  document.getElementById('scoreDisplay').textContent = Math.floor(score);
+
+  // Spawn
+  spawnTimer++;
+  if (spawnTimer >= spawnInterval) {
+    spawnObstacle();
+    if (Math.random() < 0.45) spawnPowerup();
+    spawnTimer = 0;
+    spawnInterval = Math.max(40, spawnInterval - 0.5);
+  }
+
+  // Move obstacles
+  for (let i = obstacles.length-1; i >= 0; i--) {
+    const o = obstacles[i];
+    o.x -= speed;
+    o.wiggle += 0.08;
+    if (o.x < -80) { obstacles.splice(i,1); continue; }
+
+    // Collision
+    if (!player.invincible && !shielded &&
+        player.x + PLAYER_W*0.7 > o.x + o.w*0.2 &&
+        player.x + PLAYER_W*0.3 < o.x + o.w*0.8 &&
+        player.y + PLAYER_H*0.8 > o.y + o.h*0.15 &&
+        player.y + PLAYER_H*0.2 < o.y + o.h) {
+      hitObstacle(o);
+      obstacles.splice(i,1);
+    }
+  }
+
+  // Move powerups
+  for (let i = powerups.length-1; i >= 0; i--) {
+    const p = powerups[i];
+    p.x -= speed;
+    p.bob += 0.08;
+    p.y += Math.sin(p.bob) * 0.5;
+    if (p.x < -60) { powerups.splice(i,1); continue; }
+
+    // Collect
+    if (player.x + PLAYER_W*0.8 > p.x && player.x + PLAYER_W*0.2 < p.x+p.w &&
+        player.y + PLAYER_H*0.8 > p.y && player.y + PLAYER_H*0.2 < p.y+p.h) {
+      collectPowerup(p);
+      powerups.splice(i,1);
+    }
+  }
+
+  // Powerup timer
+  if (activePowerup && activePowerup.duration > 0) {
+    powerupTimer -= 16;
+    if (powerupTimer <= 0) {
+      deactivatePowerup();
+    }
+  }
+
+  // Particles
+  for (let i = particles.length-1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.life -= p.decay;
+    if (p.life <= 0) particles.splice(i,1);
+  }
+
+  // Floating texts
+  for (let i = floatingTexts.length-1; i >= 0; i--) {
+    const t = floatingTexts[i];
+    t.y += t.vy; t.life -= t.decay;
+    if (t.life <= 0) floatingTexts.splice(i,1);
+  }
+}
+
+function hitObstacle(o) {
+  if (shielded) {
+    shielded = false;
+    deactivatePowerup();
+    spawnParticles(player.x+PLAYER_W/2, player.y+PLAYER_H/2, '#00C9A7', 14);
+    addFloatingText('BLOCKED!', player.x, player.y-20, '#00C9A7');
+    return;
+  }
+  lives--;
+  spawnParticles(player.x+PLAYER_W/2, player.y+PLAYER_H/2, '#E84855', 16);
+  addFloatingText('-1 LIFE', player.x, player.y-20, '#E84855');
+  updateHUD();
+  if (lives <= 0) {
+    endGame();
+  } else {
+    player.invincible = true;
+    player.invincibleTimer = 90;
+  }
+}
+
+function collectPowerup(p) {
+  collected++;
+  spawnParticles(p.x+p.w/2, p.y+p.h/2, p.color, 12);
+  addFloatingText(p.name.toUpperCase(), p.x, p.y-10, p.color);
+
+  if (p.effect === 'BONUS_POINTS') {
+    const bonus = 150 + Math.floor(distance * 0.5);
+    score += bonus;
+    addFloatingText(`+${bonus}!`, p.x, p.y-30, '#16A34A');
+    return;
+  }
+
+  activePowerup = p;
+  powerupTimer = p.duration;
+  const hudPU = document.getElementById('hudPowerup');
+  hudPU.style.display = 'block';
+
+  if (p.effect === 'DOUBLE_JUMP') {
+    doubleJumpAvailable = true;
+    hudPU.textContent = '⚡ DOUBLE JUMP READY';
+  } else if (p.effect === 'SHIELD') {
+    shielded = true;
+    hudPU.textContent = '🔑 SHIELD ACTIVE';
+  } else if (p.effect === 'SLOW_WORLD') {
+    slowWorld = true;
+    hudPU.textContent = '☕ BULLET TIME';
+  } else if (p.effect === '2X_SCORE') {
+    hudPU.textContent = '📜 2X SCORE';
+  }
+}
+
+function deactivatePowerup() {
+  if (activePowerup?.effect === 'SHIELD') shielded = false;
+  if (activePowerup?.effect === 'SLOW_WORLD') slowWorld = false;
+  if (activePowerup?.effect === 'DOUBLE_JUMP') doubleJumpAvailable = false;
+  activePowerup = null;
+  document.getElementById('hudPowerup').style.display = 'none';
+}
+
+function updateHUD() {
+  const lives_el = document.getElementById('livesDisplay');
+  lives_el.innerHTML = '';
+  for(let i=0; i<3; i++) {
+    const span = document.createElement('span');
+    span.className = 'hud-life';
+    span.textContent = i < lives ? '❤️' : '🖤';
+    lives_el.appendChild(span);
+  }
+}
+
+// ─── DRAW ────────────────────────────────────────────────────────────────────
+function draw() {
+  const W = canvas.width, H = canvas.height;
+  const groundY = H * GROUND_Y_RATIO;
+  ctx.clearRect(0, 0, W, H);
+
+  // Sky gradient
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, '#0A1628');
+  sky.addColorStop(0.5, '#112240');
+  sky.addColorStop(1, '#1a3a5c');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  // Background grid
+  ctx.strokeStyle = 'rgba(245,197,24,0.04)';
+  ctx.lineWidth = 1;
+  for(let x=0; x<W; x+=40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,groundY); ctx.stroke(); }
+  for(let y=0; y<groundY; y+=40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // Background layer items (offices, windows, etc)
+  bgLayers.forEach(layer => {
+    layer.items.forEach(item => {
+      ctx.globalAlpha = item.opacity;
+      ctx.font = `${item.size}px serif`;
+      ctx.textAlign = 'center';
+      const bgEmojis = ['🏢','🖥️','📡','🔒','💡','📊'];
+      ctx.fillText(bgEmojis[item.type % bgEmojis.length], item.x, item.y);
+    });
+  });
+  ctx.globalAlpha = 1;
+
+  // Ground
+  const grad = ctx.createLinearGradient(0, groundY, 0, H);
+  grad.addColorStop(0, '#1e3a5f');
+  grad.addColorStop(0.3, '#0f2340');
+  grad.addColorStop(1, '#071525');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, groundY, W, H - groundY);
+
+  // Ground line with glow
+  ctx.shadowColor = '#F5C518';
+  ctx.shadowBlur = 8;
+  ctx.strokeStyle = '#F5C518';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, groundY);
+  ctx.lineTo(W, groundY);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Ground dashes
+  ctx.strokeStyle = 'rgba(245,197,24,0.2)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([20, 15]);
+  ctx.beginPath();
+  ctx.moveTo(0, groundY + 12);
+  ctx.lineTo(W, groundY + 12);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Obstacles
+  obstacles.forEach(o => {
+    const wobble = Math.sin(o.wiggle) * 2;
+    ctx.font = `${Math.min(o.w, o.h) * 0.9}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Shadow/glow for obstacles
+    ctx.shadowColor = '#E84855';
+    ctx.shadowBlur = 10;
+    ctx.fillText(o.emoji, o.x + o.w/2 + wobble, o.y + o.h/2);
+    ctx.shadowBlur = 0;
+    if (o.flying) {
+      // Draw wings
+      ctx.font = '14px serif';
+      ctx.fillText('💨', o.x - 10, o.y + o.h/2);
+    }
+  });
+
+  // Powerups
+  powerups.forEach(p => {
+    // Glow ring
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.arc(p.x + p.w/2, p.y + p.h/2, p.w/2 + 4, 0, Math.PI*2);
+    ctx.strokeStyle = p.color;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.5;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    // Emoji
+    ctx.font = `${p.w * 0.9}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.emoji, p.x + p.w/2, p.y + p.h/2);
+  });
+
+  // Player
+  drawPlayer(groundY);
+
+  // Particles
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI*2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // Floating texts
+  floatingTexts.forEach(t => {
+    ctx.globalAlpha = t.life;
+    ctx.fillStyle = t.color;
+    ctx.font = `bold 14px 'Outfit', sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(t.text, t.x + PLAYER_W/2, t.y);
+  });
+  ctx.globalAlpha = 1;
+
+  // Powerup timer bar
+  if (activePowerup && activePowerup.duration > 0) {
+    const pct = powerupTimer / activePowerup.duration;
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.fillRect(10, 8, 120, 6);
+    ctx.fillStyle = activePowerup.color;
+    ctx.fillRect(10, 8, 120 * pct, 6);
+  }
+
+  // Distance counter
+  ctx.fillStyle = 'rgba(245,197,24,0.6)';
+  ctx.font = `10px 'Press Start 2P', monospace`;
+  ctx.textAlign = 'right';
+  ctx.fillText(`${Math.floor(distance)}m`, W - 10, H - 10);
+
+  // Shield overlay
+  if (shielded) {
+    ctx.beginPath();
+    ctx.arc(player.x + PLAYER_W/2, player.y + PLAYER_H/2, PLAYER_W * 0.75, 0, Math.PI*2);
+    ctx.strokeStyle = '#00C9A7';
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.6 + Math.sin(Date.now()*0.01)*0.3;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.textBaseline = 'alphabetic';
+}
+
+function drawPlayer(groundY) {
+  const c = careers[selectedCareer];
+  const x = player.x;
+  const y = player.y;
+  const W = PLAYER_W;
+  const H = PLAYER_H;
+  const squishX = player.squish > 1 ? 1/player.squish : 1;
+  const squishY = player.squish;
+
+  // Blink if invincible
+  if (player.invincible && Math.floor(Date.now()/80)%2===0) return;
+
+  ctx.save();
+  ctx.translate(x + W/2, y + H/2);
+  ctx.scale(squishX, squishY);
+
+  // Shadow
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.ellipse(0, H/2 + 4, W*0.4, 5, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Body
+  ctx.fillStyle = c.color;
+  ctx.beginPath();
+  ctx.roundRect(-W*0.35, -H*0.1, W*0.7, H*0.55, 6);
+  ctx.fill();
+
+  // Head
+  ctx.fillStyle = '#FFDBB5';
+  ctx.beginPath();
+  ctx.arc(0, -H*0.28, W*0.28, 0, Math.PI*2);
+  ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.arc(-W*0.09, -H*0.28, 3, 0, Math.PI*2);
+  ctx.arc(W*0.09, -H*0.28, 3, 0, Math.PI*2);
+  ctx.fill();
+
+  // Smile
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(0, -H*0.22, W*0.1, 0.2, Math.PI-0.2);
+  ctx.stroke();
+
+  // Career emoji badge on chest
+  ctx.font = '14px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(c.emoji, 0, H*0.12);
+
+  // Legs (animated)
+  const legSwing = player.onGround ? Math.sin(player.frame * Math.PI/2) * 12 : 0;
+  ctx.fillStyle = '#1a2a40';
+  ctx.fillRect(-W*0.22, H*0.28, W*0.18, H*0.22);
+  ctx.fillRect(W*0.04, H*0.28, W*0.18, H*0.22);
+  // Shoes
+  ctx.fillStyle = c.color;
+  ctx.fillRect(-W*0.26 + legSwing*0.3, H*0.44, W*0.22, H*0.1);
+  ctx.fillRect(W*0.02 - legSwing*0.3, H*0.44, W*0.22, H*0.1);
+
+  ctx.restore();
+}
+
+// ─── GAME LOOP ───────────────────────────────────────────────────────────────
+function gameLoop() {
+  update();
+  draw();
+  if (gameRunning) animFrame = requestAnimationFrame(gameLoop);
+}
+
+function endGame() {
+  gameRunning = false;
+  unbindControls();
+  cancelAnimationFrame(animFrame);
+
+  const finalScore = Math.floor(score);
+  const isNew = finalScore > highScore;
+  if (isNew) {
+    highScore = finalScore;
+    localStorage.setItem('careerRushHS', highScore);
+  }
+
+  const c = careers[selectedCareer];
+  document.getElementById('goScore').textContent = finalScore;
+  document.getElementById('goDist').textContent = `${Math.floor(distance)}m`;
+  document.getElementById('goCollected').textContent = collected;
+
+  const subs = ['NICE TRY, SPARK SCHOLAR', 'KEEP GRINDING!', 'TECH IS TOUGH — SO ARE YOU', 'RESPAWN AND TRY AGAIN'];
+  document.getElementById('goSub').textContent = subs[Math.floor(Math.random()*subs.length)];
+  document.getElementById('newBest').style.display = isNew ? 'block' : 'none';
+
+  document.getElementById('goCareerCard').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <span style="font-size:28px">${c.emoji}</span>
+      <div>
+        <div class="go-career-name">${c.name}'s Career: ${c.field}</div>
+        <div class="go-career-salary">NC Salary: ${c.salary}</div>
+      </div>
+    </div>
+    <p class="go-career-desc">${c.desc}</p>
+    <div class="go-career-btns">
+      <button class="go-btn-primary" onclick="openMainApp('${c.roadmapKey}')">See Full Roadmap →</button>
+      <button class="go-btn-outline" onclick="openMainApp('')">Explore All Careers</button>
+    </div>
+  `;
+
+  showScreen('gameOverScreen');
+}
+
+function restartGame() {
+  showScreen('gameScreen');
+  resizeCanvas();
+  resetGame();
+  gameRunning = true;
+  bindControls();
+  gameLoop();
+}
+
+function goToMenu() {
+  showScreen('titleScreen');
+}
+
+function openMainApp(roadmapKey) {
+  // Try to navigate to parent if embedded, otherwise open new tab
+  if (window.opener) {
+    window.opener.postMessage({ type:'CAREER_RUSH_NAV', roadmapKey }, '*');
+    window.close();
+  } else {
+    window.open('nc_tech_pathways_sparknc.html', '_blank');
+  }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  gameRunning = id === 'gameScreen';
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+window.onload = () => {
+  initCanvas();
+  document.getElementById('bestDisplay') && (document.getElementById('bestDisplay').textContent = highScore);
+};
+</script>
+</body>
+</html>
