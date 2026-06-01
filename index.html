@@ -1815,7 +1815,7 @@ async function fetchUSAJobs() {
   container.innerHTML = `<div class="loading-state"><span class="spin">⚙️</span>Searching federal jobs in NC for "${kw}"...</div>`;
   try {
     const res = await fetch(`https://data.usajobs.gov/api/search?Keyword=${encodeURIComponent(kw)}&LocationName=North+Carolina&ResultsPerPage=12`, {
-      headers: { 'Host': 'data.usajobs.gov', 'User-Agent': 'student-career-explorer', 'Authorization-Key': '' }
+      headers: { 'Host': 'data.usajobs.gov', 'User-Agent': 'hortoncasey17@gmail.com', 'Authorization-Key': 'SURBwl2D7ZKv41yicH8anAhszRiqDKVRFoKJezY5FZ4' }
     });
     const data = await res.json();
     const items = data?.SearchResult?.SearchResultItems || [];
