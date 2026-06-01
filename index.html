@@ -926,7 +926,7 @@ select:focus { border-color:var(--accent); }
       <p style="font-size:13px;color:var(--muted);margin-top:4px;">Federal positions pulled live from USAJobs.gov + quick search on major boards</p>
     </div>
     <div class="live-controls">
-      <input type="text" id="jobSearchKeyword" placeholder="Job title or keyword" style="padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-family:'Outfit',sans-serif;font-size:14px;outline:none;min-width:180px;" value="information technology">
+      <input type="text" id="jobSearchKeyword" placeholder="Job title or keyword" style="padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-family:'Outfit',sans-serif;font-size:14px;outline:none;min-width:180px;" value="cybersecurity">
       <button class="btn-primary" onclick="fetchUSAJobs()">Search Federal Jobs</button>
     </div>
   </div>
@@ -1810,17 +1810,24 @@ function renderRoadmap() {
 
 // ─── LIVE JOBS ─────────────────────────────────────────────────────────────
 async function fetchUSAJobs() {
-  const kw = document.getElementById('jobSearchKeyword')?.value || 'information technology';
+  const kw = document.getElementById('jobSearchKeyword')?.value || 'cybersecurity';
   const container = document.getElementById('liveJobsContainer');
   container.innerHTML = `<div class="loading-state"><span class="spin">⚙️</span>Searching federal jobs in NC for "${kw}"...</div>`;
   try {
-    const res = await fetch(`https://data.usajobs.gov/api/search?Keyword=${encodeURIComponent(kw)}&LocationName=North+Carolina&ResultsPerPage=12`, {
-      headers: { 'Host': 'data.usajobs.gov', 'User-Agent': 'hortoncasey17@gmail.com', 'Authorization-Key': 'SURBwl2D7ZKv41yicH8anAhszRiqDKVRFoKJezY5FZ4' }
+    // Use corsproxy to bypass CORS restriction on GitHub Pages
+    const apiUrl = `https://data.usajobs.gov/api/search?Keyword=${encodeURIComponent(kw)}&LocationName=North+Carolina&ResultsPerPage=12`;
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
+    const res = await fetch(proxyUrl, {
+      headers: {
+        'User-Agent': 'hortoncasey17@gmail.com',
+        'Authorization-Key': 'SURBwl2D7ZKv41yicH8anAhszRiqDKVRFoKJezY5FZ4',
+        'x-cors-api-key': 'temp_' + Date.now()
+      }
     });
     const data = await res.json();
     const items = data?.SearchResult?.SearchResultItems || [];
     if (!items.length) {
-      container.innerHTML = `<div class="error-state">No federal listings found for "${kw}" in NC right now. Try a different keyword or use the job board links above.</div>`;
+      container.innerHTML = `<div class="error-state">No federal listings found for "${kw}" in NC right now. Try: <strong>IT specialist</strong>, <strong>cybersecurity</strong>, or <strong>software engineer</strong>. Or use the job board links above.</div>`;
       return;
     }
     container.innerHTML = `<p style="font-size:13px;color:var(--muted);margin-bottom:14px;font-family:'Space Mono',monospace">Found ${items.length} federal positions in North Carolina</p>` +
@@ -1848,7 +1855,7 @@ async function fetchUSAJobs() {
         </div>`;
       }).join('');
   } catch(e) {
-    container.innerHTML = `<div class="error-state">Unable to load live federal jobs right now. Use the job board buttons above to search directly.<br><small>${e.message}</small></div>`;
+    container.innerHTML = `<div class="error-state">Unable to load live federal jobs right now. Use the job board buttons above to search directly on Indeed, LinkedIn, NCWorks, or USAJobs.<br><small style="color:var(--muted)">${e.message}</small></div>`;
   }
 }
 
