@@ -920,30 +920,110 @@ select:focus { border-color:var(--accent); }
 
 <!-- LIVE JOBS TAB -->
 <div class="tab-panel" id="tab-jobs">
-  <div class="live-header">
-    <div>
-      <h2>Live NC Tech Jobs</h2>
-      <p style="font-size:13px;color:var(--muted);margin-top:4px;">Federal positions pulled live from USAJobs.gov + quick search on major boards</p>
-    </div>
-    <div class="live-controls">
-      <input type="text" id="jobSearchKeyword" placeholder="Job title or keyword" style="padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-family:'Outfit',sans-serif;font-size:14px;outline:none;min-width:180px;" value="cybersecurity">
-      <button class="btn-primary" onclick="fetchUSAJobs()">Search Federal Jobs</button>
-    </div>
+  <div style="background:linear-gradient(135deg,#0A1628,#112240);border-radius:16px;padding:24px 28px;margin-bottom:24px;color:white">
+    <h2 style="font-size:22px;font-weight:800;margin-bottom:6px">💼 NC Tech Jobs</h2>
+    <p style="font-size:14px;color:var(--mid);line-height:1.6;max-width:580px">Search real NC tech jobs across the top job boards. Results open in a new tab with your keyword pre-filled.</p>
   </div>
 
-  <div style="margin-bottom:16px;">
-    <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">🔗 Search All Job Boards — Opens in New Tab:</p>
-    <div class="job-board-btns" id="boardBtns">
-      <a class="jb-btn jb-indeed" href="#" onclick="openBoard('indeed')">🔵 Indeed NC Tech Jobs</a>
-      <a class="jb-btn jb-linkedin" href="#" onclick="openBoard('linkedin')">💼 LinkedIn NC Tech Jobs</a>
-      <a class="jb-btn jb-ncworks" href="#" onclick="openBoard('ncworks')">🌿 NCWorks Online</a>
-      <a class="jb-btn jb-usa" href="#" onclick="openBoard('usa')">🇺🇸 USAJobs.gov</a>
-    </div>
+  <!-- Search bar -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;align-items:center">
+    <input type="text" id="jobSearchKeyword" placeholder="Job title or keyword" value="cybersecurity"
+      style="flex:1;min-width:200px;padding:12px 16px;border:2px solid var(--border);border-radius:10px;font-family:'Outfit',sans-serif;font-size:14px;outline:none">
+    <button class="btn-primary" onclick="launchAllBoards()" style="padding:12px 24px;white-space:nowrap">🔍 Search All Boards</button>
   </div>
 
-  <div id="liveJobsContainer"><div class="loading-state"><span class="spin">⚙️</span>Loading federal tech jobs in NC...</div></div>
+  <!-- Quick keyword chips -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px">
+    <span style="font-size:12px;color:var(--muted);align-self:center">Quick search:</span>
+    <button onclick="setKw('cybersecurity')" class="btn-outline" style="font-size:12px;padding:5px 12px">🛡️ Cybersecurity</button>
+    <button onclick="setKw('software developer')" class="btn-outline" style="font-size:12px;padding:5px 12px">💻 Software Dev</button>
+    <button onclick="setKw('data analyst')" class="btn-outline" style="font-size:12px;padding:5px 12px">📊 Data Analyst</button>
+    <button onclick="setKw('IT support')" class="btn-outline" style="font-size:12px;padding:5px 12px">🖥️ IT Support</button>
+    <button onclick="setKw('cloud engineer')" class="btn-outline" style="font-size:12px;padding:5px 12px">☁️ Cloud</button>
+    <button onclick="setKw('health IT')" class="btn-outline" style="font-size:12px;padding:5px 12px">🏥 Health IT</button>
+  </div>
+
+  <!-- Job board cards -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
+    <div class="employer-card" onclick="openBoard('indeed')" style="cursor:pointer">
+      <div class="emp-header">
+        <div class="emp-logo" style="background:#EEF2FF;font-size:24px">🔵</div>
+        <div class="emp-info">
+          <div class="emp-name">Indeed</div>
+          <div class="emp-city">Millions of NC listings</div>
+        </div>
+        <span class="emp-badge badge-entry">Most Popular</span>
+      </div>
+      <p class="emp-desc">The largest job board in the US. Best for entry-level and mid-level tech roles across all NC cities.</p>
+      <div class="emp-link">Search Indeed NC →</div>
+    </div>
+
+    <div class="employer-card" onclick="openBoard('linkedin')" style="cursor:pointer">
+      <div class="emp-header">
+        <div class="emp-logo" style="background:#EEF2FF;font-size:24px">💼</div>
+        <div class="emp-info">
+          <div class="emp-name">LinkedIn Jobs</div>
+          <div class="emp-city">Professional network + jobs</div>
+        </div>
+        <span class="emp-badge badge-hiring">Networking</span>
+      </div>
+      <p class="emp-desc">Best for professional roles, company research, and connecting with NC tech recruiters directly.</p>
+      <div class="emp-link">Search LinkedIn NC →</div>
+    </div>
+
+    <div class="employer-card" onclick="openBoard('ncworks')" style="cursor:pointer">
+      <div class="emp-header">
+        <div class="emp-logo" style="background:#F0FDF4;font-size:24px">🌿</div>
+        <div class="emp-info">
+          <div class="emp-name">NCWorks Online</div>
+          <div class="emp-city">Official NC job portal</div>
+        </div>
+        <span class="emp-badge badge-entry">NC Official</span>
+      </div>
+      <p class="emp-desc">NC's official state job portal. Great for government, education, and healthcare IT roles across all NC counties.</p>
+      <div class="emp-link">Search NCWorks →</div>
+    </div>
+
+    <div class="employer-card" onclick="openBoard('usa')" style="cursor:pointer">
+      <div class="emp-header">
+        <div class="emp-logo" style="background:#FFF1F0;font-size:24px">🏛️</div>
+        <div class="emp-info">
+          <div class="emp-name">USAJobs.gov</div>
+          <div class="emp-city">Federal government jobs</div>
+        </div>
+        <span class="emp-badge badge-hiring">Federal</span>
+      </div>
+      <p class="emp-desc">All federal tech jobs in NC — from Fort Liberty to RTP. Strong pay, benefits, and job security.</p>
+      <div class="emp-link">Search Federal Jobs →</div>
+    </div>
+
+    <div class="employer-card" onclick="openBoard('builtin')" style="cursor:pointer">
+      <div class="emp-header">
+        <div class="emp-logo" style="background:#FAF5FF;font-size:24px">🚀</div>
+        <div class="emp-info">
+          <div class="emp-name">Built In NC</div>
+          <div class="emp-city">NC startup & tech scene</div>
+        </div>
+        <span class="emp-badge badge-entry">Startups</span>
+      </div>
+      <p class="emp-desc">Focused on NC's tech startup ecosystem — Raleigh, Durham, Charlotte. Great for modern tech company roles.</p>
+      <div class="emp-link">Search Built In NC →</div>
+    </div>
+
+    <div class="employer-card" onclick="openBoard('dice')" style="cursor:pointer">
+      <div class="emp-header">
+        <div class="emp-logo" style="background:#FEFCE8;font-size:24px">🎯</div>
+        <div class="emp-info">
+          <div class="emp-name">Dice</div>
+          <div class="emp-city">Tech-specific job board</div>
+        </div>
+        <span class="emp-badge badge-hiring">Tech Only</span>
+      </div>
+      <p class="emp-desc">Tech-only job board — every listing is a tech role. Best for specialized searches like DevOps, AI, and Cloud.</p>
+      <div class="emp-link">Search Dice NC →</div>
+    </div>
+  </div>
 </div>
-
 <!-- MY PLAN TAB -->
 <div class="tab-panel" id="tab-plan">
   <div class="plan-intro">
@@ -1623,7 +1703,6 @@ function showTab(name, btn) {
   // Sync mobile dropdown
   const sel = document.querySelector('.mobile-tab-select');
   if (sel) sel.value = name;
-  if (name === 'jobs') fetchUSAJobs();
   if (name === 'plan') renderPlan();
   if (name === 'roadmap') populateRoadmapPicker();
   if (name === 'employers') renderEmployers();
@@ -1809,67 +1888,31 @@ function renderRoadmap() {
 }
 
 // ─── LIVE JOBS ─────────────────────────────────────────────────────────────
-async function fetchUSAJobs() {
-  const kw = document.getElementById('jobSearchKeyword')?.value || 'cybersecurity';
-  const container = document.getElementById('liveJobsContainer');
-  container.innerHTML = `<div class="loading-state"><span class="spin">⚙️</span>Searching federal jobs in NC for "${kw}"...</div>`;
-  try {
-    // Use corsproxy to bypass CORS restriction on GitHub Pages
-    const apiUrl = `https://data.usajobs.gov/api/search?Keyword=${encodeURIComponent(kw)}&LocationName=North+Carolina&ResultsPerPage=12`;
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
-    const res = await fetch(proxyUrl, {
-      headers: {
-        'User-Agent': 'hortoncasey17@gmail.com',
-        'Authorization-Key': 'SURBwl2D7ZKv41yicH8anAhszRiqDKVRFoKJezY5FZ4',
-        'x-cors-api-key': 'temp_' + Date.now()
-      }
-    });
-    const data = await res.json();
-    const items = data?.SearchResult?.SearchResultItems || [];
-    if (!items.length) {
-      container.innerHTML = `<div class="error-state">No federal listings found for "${kw}" in NC right now. Try: <strong>IT specialist</strong>, <strong>cybersecurity</strong>, or <strong>software engineer</strong>. Or use the job board links above.</div>`;
-      return;
-    }
-    container.innerHTML = `<p style="font-size:13px;color:var(--muted);margin-bottom:14px;font-family:'Space Mono',monospace">Found ${items.length} federal positions in North Carolina</p>` +
-      items.map(item => {
-        const j = item.MatchedObjectDescriptor;
-        const pay = j.PositionRemuneration?.[0];
-        const salaryStr = pay ? `$${Number(pay.MinimumRange).toLocaleString()} – $${Number(pay.MaximumRange).toLocaleString()} ${pay.RateIntervalCode}` : 'See posting';
-        const closeDate = j.ApplicationCloseDate ? new Date(j.ApplicationCloseDate).toLocaleDateString() : 'Open';
-        const loc = j.PositionLocation?.[0]?.LocationName || 'North Carolina';
-        return `<div class="live-job-card">
-          <div class="ljc-top">
-            <div>
-              <div class="ljc-title">${j.PositionTitle}</div>
-              <div class="ljc-org">${j.OrganizationName}</div>
-            </div>
-            <div style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap">${salaryStr}</div>
-          </div>
-          <div class="ljc-meta">
-            <span class="ljc-tag ljc-loc">📍 ${loc}</span>
-            <span class="ljc-tag ljc-type">🏛️ Federal</span>
-            <span class="ljc-tag ljc-date">Closes: ${closeDate}</span>
-          </div>
-          <p class="ljc-desc">${(j.UserArea?.Details?.JobSummary||j.QualificationSummary||'').replace(/<[^>]*>/g,'').slice(0,200)}...</p>
-          <a class="ljc-apply" href="${j.PositionURI}" target="_blank">View & Apply on USAJobs →</a>
-        </div>`;
-      }).join('');
-  } catch(e) {
-    container.innerHTML = `<div class="error-state">Unable to load live federal jobs right now. Use the job board buttons above to search directly on Indeed, LinkedIn, NCWorks, or USAJobs.<br><small style="color:var(--muted)">${e.message}</small></div>`;
-  }
+
+
+function setKw(kw) {
+  const el = document.getElementById('jobSearchKeyword');
+  if (el) { el.value = kw; launchAllBoards(); }
+}
+
+function launchAllBoards() {
+  const kw = document.getElementById('jobSearchKeyword')?.value || 'technology';
+  const enc = encodeURIComponent(kw);
+  window.open(`https://www.indeed.com/jobs?q=${enc}&l=North+Carolina`, '_blank');
 }
 
 function openBoard(board) {
   const kw = document.getElementById('jobSearchKeyword')?.value || 'technology';
-  const enc = encodeURIComponent(kw + ' North Carolina');
+  const enc = encodeURIComponent(kw);
   const urls = {
-    indeed: `https://www.indeed.com/jobs?q=${enc}&l=North+Carolina`,
+    indeed:   `https://www.indeed.com/jobs?q=${enc}&l=North+Carolina`,
     linkedin: `https://www.linkedin.com/jobs/search/?keywords=${enc}&location=North%20Carolina`,
-    ncworks: `https://www.ncworks.gov/vosnet/jobbanks/jobsearch.aspx?enc=snkOABCRFYMnF7fzJhVoxQ==`,
-    usa: `https://www.usajobs.gov/Search/Results?k=${encodeURIComponent(kw)}&l=North+Carolina`
+    ncworks:  `https://www.ncworks.gov/vosnet/jobbanks/jobsearch.aspx`,
+    usa:      `https://www.usajobs.gov/Search/Results?k=${enc}&l=North+Carolina`,
+    builtin:  `https://www.builtinnc.com/jobs?search=${enc}`,
+    dice:     `https://www.dice.com/jobs?q=${enc}&location=North+Carolina`
   };
-  window.open(urls[board], '_blank');
-  return false;
+  if (urls[board]) window.open(urls[board], '_blank');
 }
 
 // ─── MY PLAN ───────────────────────────────────────────────────────────────
