@@ -1907,9 +1907,9 @@ function openBoard(board) {
   const urls = {
     indeed:   `https://www.indeed.com/jobs?q=${enc}&l=North+Carolina`,
     linkedin: `https://www.linkedin.com/jobs/search/?keywords=${enc}&location=North%20Carolina`,
-    ncworks:  `https://www.ncworks.gov/vosnet/jobbanks/jobsearch.aspx`,
+    ncworks:  `https://www.ncworks.gov/vosnet/jobbanks/jobsearch.aspx?enc=snkOABCRFYMnF7fzJhVoxQ==`,
     usa:      `https://www.usajobs.gov/Search/Results?k=${enc}&l=North+Carolina`,
-    builtin:  `https://www.builtinnc.com/jobs?search=${enc}`,
+    builtin:  `https://www.builtincarolinas.com/jobs?search=${enc}`,
     dice:     `https://www.dice.com/jobs?q=${enc}&location=North+Carolina`
   };
   if (urls[board]) window.open(urls[board], '_blank');
