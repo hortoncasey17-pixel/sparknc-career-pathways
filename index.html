@@ -973,15 +973,15 @@ select:focus { border-color:var(--accent); }
 
     <div class="employer-card" onclick="openBoard('ncworks')" style="cursor:pointer">
       <div class="emp-header">
-        <div class="emp-logo" style="background:#F0FDF4;font-size:24px">🌿</div>
+        <div class="emp-logo" style="background:#F0FDF4;font-size:24px">⚡</div>
         <div class="emp-info">
-          <div class="emp-name">NCWorks Online</div>
-          <div class="emp-city">Official NC job portal</div>
+          <div class="emp-name">ZipRecruiter</div>
+          <div class="emp-city">Top NC job board</div>
         </div>
-        <span class="emp-badge badge-entry">NC Official</span>
+        <span class="emp-badge badge-entry">No Login</span>
       </div>
-      <p class="emp-desc">NC's official state job portal. Great for government, education, and healthcare IT roles across all NC counties.</p>
-      <div class="emp-link">Search NCWorks →</div>
+      <p class="emp-desc">One of the fastest-growing job boards in the US. Search thousands of NC tech jobs instantly — no account needed.</p>
+      <div class="emp-link">Search ZipRecruiter NC →</div>
     </div>
 
     <div class="employer-card" onclick="openBoard('usa')" style="cursor:pointer">
@@ -1907,7 +1907,7 @@ function openBoard(board) {
   const urls = {
     indeed:   `https://www.indeed.com/jobs?q=${enc}&l=North+Carolina`,
     linkedin: `https://www.linkedin.com/jobs/search/?keywords=${enc}&location=North%20Carolina`,
-    ncworks:  `https://www.ncworks.gov/vosnet/jobbanks/jobsearch.aspx?bsid=&esid=&stc=&dtype=1&from=&to=&onet=&azip=&msa=&rad=25&srt=2&ftype=1&itype=&occup=&occup2=&rsrch=y&keywords=${enc}&state=37`,
+    ncworks:  `https://www.ziprecruiter.com/jobs-search?search=${enc}&location=North+Carolina`,
     usa:      `https://www.usajobs.gov/Search/Results?k=${enc}&l=North+Carolina`,
     builtin:  `https://builtin.com/jobs?search=${enc}&location=north-carolina`,
     dice:     `https://www.dice.com/jobs?q=${enc}&location=North+Carolina`
