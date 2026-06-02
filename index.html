@@ -1907,9 +1907,9 @@ function openBoard(board) {
   const urls = {
     indeed:   `https://www.indeed.com/jobs?q=${enc}&l=North+Carolina`,
     linkedin: `https://www.linkedin.com/jobs/search/?keywords=${enc}&location=North%20Carolina`,
-    ncworks:  `https://www.ncworks.gov/vosnet/jobbanks/jobsearch.aspx?enc=snkOABCRFYMnF7fzJhVoxQ==`,
+    ncworks:  `https://www.ncworks.gov/vosnet/jobbanks/jobsearch.aspx?bsid=&esid=&stc=&dtype=1&from=&to=&onet=&azip=&msa=&rad=25&srt=2&ftype=1&itype=&occup=&occup2=&rsrch=y&keywords=${enc}&state=37`,
     usa:      `https://www.usajobs.gov/Search/Results?k=${enc}&l=North+Carolina`,
-    builtin:  `https://www.builtincarolinas.com/jobs?search=${enc}`,
+    builtin:  `https://builtin.com/jobs?search=${enc}&location=north-carolina`,
     dice:     `https://www.dice.com/jobs?q=${enc}&location=North+Carolina`
   };
   if (urls[board]) window.open(urls[board], '_blank');
